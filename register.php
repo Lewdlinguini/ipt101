@@ -55,7 +55,8 @@
             <button type="submit" class="btn btn-primary btn-black">Register</button>
             <?php 
             include "db_conn.php"; 
-            
+            include "send_email.php";
+
             if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $username = $_POST['username'];
                 $password = $_POST['password'];
@@ -64,15 +65,28 @@
                 $middlename = $_POST['middlename'];
                 $email = $_POST['email'];
 
-                if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                    echo '<p class="error">Invalid email format</p>';
+                $check_email_sql = "SELECT * FROM user WHERE Email='$email'";
+                $check_email_result = mysqli_query($conn, $check_email_sql);
+
+                if (mysqli_num_rows($check_email_result) > 0) {
+                    echo '<p class="error-message-duplicate">Email already registered.</p>';
                 } else {
-                    $sql = "INSERT INTO user (username, password, Lastname, First_name, Middle_name, Email) 
-                            VALUES ('$username', '$password', '$lastname', '$firstname', '$middlename', '$email')";
-                    if (mysqli_query($conn, $sql)) {
-                        echo '<p class="success">Registration successful. <a href="Loginform.php" class="btn btn-primary btn-black">Login</a></p>';
+                    
+                    $verification_code = substr(md5(uniqid(mt_rand(), true)), 0, 5);
+
+                    if (sendVerificationCode($email, $verification_code)) {
+                       
+                        $sql = "INSERT INTO user (username, password, Lastname, First_name, Middle_name, Email, verification_code, Status) 
+                                VALUES ('$username', '$password', '$lastname', '$firstname', '$middlename', '$email', '$verification_code', 'inactive')";
+                        if (mysqli_query($conn, $sql)) {
+                            
+                            header("Location: verify.php?email=$email");
+                            exit();
+                        } else {
+                            echo '<p class="error">Registration failed.</p>';
+                        }
                     } else {
-                        echo '<p class="error">Registration failed.</p>';
+                        echo '<p class="error">Email sending failed.</p>';
                     }
                 }
             }

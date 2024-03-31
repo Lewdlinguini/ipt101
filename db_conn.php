@@ -1,5 +1,5 @@
 <?php
-
+//https://github.com/Lewdlinguini/ipt101
 $sname = "localhost";
 
 $uname = "root";

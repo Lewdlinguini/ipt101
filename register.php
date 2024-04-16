@@ -22,6 +22,7 @@
             box-shadow: none !important;
             outline: none !important;
         }
+
     </style>
 </head>
 <body>
@@ -53,6 +54,7 @@
                 <input type="email" name="email" id="email" class="form-control" placeholder="Email" required>
             </div>
             <button type="submit" class="btn btn-primary btn-black">Register</button>
+
             <?php 
             include "db_conn.php"; 
             include "send_email.php";

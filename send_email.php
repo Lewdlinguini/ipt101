@@ -26,4 +26,4 @@ function sendVerificationCode($email, $verification_code) {
         return false;
     }
 }
-?> s
+?> 

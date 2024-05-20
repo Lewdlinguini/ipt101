@@ -1,22 +1,23 @@
 <?php
 include "db_conn.php";
 
-
-if(isset($_GET['email'])) {
+if (isset($_GET['email'])) {
     $email = $_GET['email'];
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['verification_code'])) {
         $verification_code = $_POST['verification_code'];
 
         
-        $check_verification_sql = "SELECT * FROM user WHERE Email='$email' AND verification_code='$verification_code'";
-        $check_verification_result = mysqli_query($conn, $check_verification_sql);
+        $stmt = $conn->prepare("SELECT * FROM user WHERE Email = ? AND verification_code = ?");
+        $stmt->bind_param("ss", $email, $verification_code); 
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if (mysqli_num_rows($check_verification_result) > 0) {
+        if ($result->num_rows > 0) {
             
-            $update_status_sql = "UPDATE user SET Status='active' WHERE Email='$email'";
-            if (mysqli_query($conn, $update_status_sql)) {
-                
+            $update_stmt = $conn->prepare("UPDATE user SET Status='active' WHERE Email = ?");
+            $update_stmt->bind_param("s", $email);
+            if ($update_stmt->execute()) {
                 header("Location: Loginform.php");
                 exit();
             } else {
@@ -25,6 +26,9 @@ if(isset($_GET['email'])) {
         } else {
             echo '<p class="error-message">Invalid verification code. Please try again.</p>';
         }
+
+        $stmt->close();
+        $conn->close();
     }
 }
 ?>
@@ -40,13 +44,11 @@ if(isset($_GET['email'])) {
             max-width: 600px;
             margin-top: 50px;
         }
-
         .btn-black {
             background-color: black;
             color: white;
             border: none;
         }
-
         .btn.btn-black:focus,
         .btn.btn-black.focus {
             box-shadow: none !important;
@@ -55,7 +57,7 @@ if(isset($_GET['email'])) {
     </style>
 </head>
 <body>
-    <form action="verify.php?email=<?php echo $email; ?>" method="post">
+    <form action="verify.php?email=<?php echo htmlspecialchars($email); ?>" method="post">
         <div class="container">
             <h2>Verification</h2>
             <div class="form-group">
